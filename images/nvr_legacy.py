@@ -4,7 +4,7 @@
 # Fletcher Boyd (fletcher.boyd@artifactory.org.au)
 # Last modified: 20-04-2021
 # Tested on Ubiquiti Aircam, should also work on any Ubiquiti camera with the snapshot endpoint enabled
-# This script utilises an anonymous that is automatically enabled on older cameras but needs to be explicitley enabled on newer cameras.
+# This script utilises an anonymous mode that is automatically enabled on older cameras but needs to be explicitley enabled on newer cameras.
 # The introduction of an API in later versions of Unifi Video render this obselete if you have priveldged access to the NVR
 
 import requests
