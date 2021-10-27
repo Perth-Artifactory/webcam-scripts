@@ -6,7 +6,8 @@
 # --ping - Enabling pinging checks when a camera is online
 # --create-check - Enable creation of checks for cameras not already on HealthChecks.io
 # --signal-fail - Enable signalling an offline camera for checks that were already added to HealthChecks.io
-# Does not currently check whether a check is present but disabled
+# --force - Ping checks even if the check is disabled
+# --auto - Equivalent to --ping --create-check --signal-fail --force
 # Tested on Unifi Video 3.10.13
 
 import requests
@@ -35,13 +36,25 @@ def createCheck(name,ctag,xtag):
     r1 = requests.post(api_url, headers=headers, data=json.dumps(payload)).json()
     return r1["ping_url"]
 
+# Check for --auto
+if "--auto" in sys.argv:
+    sys.argv = ["--ping", "--create-check", "--signal-fail", "--force"]
+
 # Get list of current checks with our camera tag
 r = requests.get(api_url, headers=headers, params={"tag":exclusiveTag}).json()
 checks = {}
 # Strip out all information except for the actual camera name and the ping url.
 for check in r["checks"]:
     name = check["name"][4:]
-    checks[name] = check["ping_url"]
+    if "--force" in sys.argv:
+        if check["status"] == "paused":
+            print("Check for {} found but is disabled. Will ping/fail this check anyway.".format(name))
+        checks[name] = check["ping_url"]
+    else:
+        if check["status"] != "paused":
+            checks[name] = check["ping_url"]
+        else:
+            print("Check for {} found but is disabled. Use --force to interact with this check.".format(name))
 
 # get a list of cameras from the NVR
 uva = UnifiVideoAPI(api_key=unifiVideo_API, addr=nvr_host,
