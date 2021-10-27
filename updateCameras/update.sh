@@ -2,6 +2,7 @@
 
 # Customise watermarks on Unifi cameras
 # Fletcher Boyd (fletcher.boyd@artifactory.org.au)
+# Spondy (@spondy)
 # Last modified: 26-10-2021
 # update.sh <camera ip> <camera password>
 # Tested on Unifi Video 3.10.13 and G2/G3 Unifi cameras
