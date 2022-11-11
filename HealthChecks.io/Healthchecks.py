@@ -29,7 +29,7 @@ headers = {"X-Api-Key": healthChecks_API}
 def createCheck(name,ctag,xtag):
     # Create a new check with a check in time of 5 minutes and a 1 minute grace period.
     payload = {"name":"cam-"+name,
-               "tags":ctag+" "+xtag,
+               "tags":" ".join([ctag, xtag, "cam-"+name]),
                "desc":"A Unifi camera - check automatically added",
                "timeout":300,
                "grace":60}
