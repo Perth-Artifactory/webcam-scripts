@@ -5,6 +5,7 @@
 
 import requests
 from pprint import pprint
+import json
 
 token = "Bearer TOKEN"
 
@@ -24,4 +25,4 @@ for sensor in sensors:
     t = r.json()["state"]
     data[sensor] = round(float(t),1)
 
-pprint(data)
+print(json.dumps(data))
