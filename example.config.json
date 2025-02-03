@@ -1,0 +1,14 @@
+{
+    "nvr": {
+        "user": "username",
+        "password": "password",
+        "host": "hostname/ip"
+    },
+    "path": "./snapshots",
+    "cameras": {
+        "ignored": [
+            ""
+        ],
+        "disabled": ["test"]
+    }
+}
