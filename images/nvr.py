@@ -1,32 +1,71 @@
-#!/usr/bin/python3
-
-# Unifi Video snapshots via API
-# Fletcher Boyd (fletcher.boyd@artifactory.org.au)
-# Last modified: 20-04-2021
-# Tested on Unifi Video 3.10.13 
-
-from unifi_video import UnifiVideoAPI
+import json
+import asyncio
+import logging
 import time
+from uiprotect import ProtectApiClient
+import os
 import shutil
 
-# Connect to the NVR. This API isn't supported on older versions of Unifi Video
-uva = UnifiVideoAPI(api_key='Unifi Video API key', addr='nvr2',
-    port=7443, schema='https', verify_cert=False)
+class EpochTimeFormatter(logging.Formatter):
+    def formatTime(self, record, datefmt=None):
+        return str(int(time.time()))
 
-# list the cameras that we want to pull and which should be pulled but disabled. Snapshot should be used for long term changes, disabled for short term disabling of a specific camera.
-snapshot = ["lab","carpark","foyer","project","project2","band"]
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+for handler in logging.getLogger().handlers:
+    handler.setFormatter(EpochTimeFormatter('%(asctime)s [%(levelname)s] %(message)s'))
+
+# Load config from file
+with open("config.json", "r") as f:
+    config: dict = json.load(f)
+if not config["path"].endswith("/"):
+    config["path"] += "/"
+    
+# Check for --all
+if "--all" in os.sys.argv:
+    config["cameras"]["ignored"] = []
+    logging.info("Ignoring all cameras")
+
+protect = ProtectApiClient(
+    host=config["nvr"]["host"],
+    port=443,
+    username=config["nvr"]["user"],
+    password=config["nvr"]["password"],
+    verify_ssl=False,
+)
+
 disabled = []
 
-# Iterate over currently online managed cameras
-for camera in uva.active_cameras:
-    if camera.name in snapshot and camera.name not in disabled:
-        # This script is currently ran via watch so print statements are used as an activity indicator
-        print(camera.name,time.time())
-        camera.snapshot(filename="/var/www/webcams/{}.jpg".format(camera.name))
-    elif camera.name in disabled:
-        print(camera.name,time.time(),"DISABLED")
-        # offline.jpg is a static image stating that the camera is offline or has been disabled
-        shutil.copy("/var/www/webcams/offline.jpg","/var/www/webcams/{}.jpg".format(camera.name))
-    else:
-        # We have a number of cameras that are active but don't require snapshots
-        print(camera.name,time.time(),"IGNORED")
+async def list_cameras():
+    """List all cameras and update snapshots"""
+    
+    await protect.update()
+
+    global disabled
+    disabled = []
+    for camera in protect.bootstrap.cameras.values():
+        if camera.name in config["cameras"]["ignored"]:
+            logging.info(f"IGNORE {camera.name}")
+            continue
+        if camera.name in config["cameras"]["disabled"]:
+            logging.info(f"DISABLED {camera.name}")
+            shutil.copy("./images/offline.jpg", f"{config['path']}{camera.name}.jpg")
+            disabled.append(camera.name)
+            continue
+        snapshot = await protect.get_camera_snapshot(camera.id)
+        with open(f"{config['path']}{camera.name}.jpg", "wb") as f:
+            logging.info(f"WRITING {camera.name}")
+            f.write(snapshot)
+            
+async def close():
+    await protect.async_disconnect_ws()
+    await protect._session.close()
+    
+asyncio.run(list_cameras())
+
+for camera in config["cameras"]["disabled"]:
+    if camera not in disabled:
+        logging.info(f"O-DISABLED: {camera}")
+        shutil.copy("./images/offline.jpg", f"{config['path']}{camera}.jpg")
+
+# Close the connection
+asyncio.run(close())
