@@ -1,10 +1,12 @@
-import json
 import asyncio
+import json
 import logging
-import time
-from uiprotect import ProtectApiClient
 import os
 import shutil
+import time
+
+from uiprotect import ProtectApiClient
+
 
 class EpochTimeFormatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):
