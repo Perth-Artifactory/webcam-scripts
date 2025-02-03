@@ -23,7 +23,7 @@ if not config["path"].endswith("/"):
 # Check for --all
 if "--all" in os.sys.argv:
     config["cameras"]["ignored"] = []
-    logging.info("Ignoring all cameras")
+    logging.info("Forcing all ignored cameras to be included")
 
 protect = ProtectApiClient(
     host=config["nvr"]["host"],
