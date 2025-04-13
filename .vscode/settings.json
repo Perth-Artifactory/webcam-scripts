@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "https-sq-artifactory-org-au",
+        "projectKey": "Perth-Artifactory_webcam-scripts_02d4e1cc-122c-46e6-9dc1-cbc1eb4e2b2d"
+    }
+}
