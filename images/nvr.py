@@ -4,6 +4,7 @@ import logging
 import time
 from uiprotect import ProtectApiClient
 import os
+import sys
 import shutil
 
 
@@ -25,7 +26,7 @@ if not config["path"].endswith("/"):
     config["path"] += "/"
 
 # Check for --all
-if "--all" in os.sys.argv:
+if "--all" in sys.argv:
     config["cameras"]["ignored"] = []
     logging.info("Ignoring 'ignored' config")
 
